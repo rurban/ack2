@@ -60,6 +60,7 @@ t/ack-match.t
 t/ack-m.t
 t/ack-named-pipes.t
 t/ack-n.t
+t/ack-norm.t
 t/ack-o.t
 t/ack-output.t
 t/ack-pager.t

@@ -27,3 +27,7 @@ lists_match( \@results, \@expected, '-i flag' );
 @results = run_ack( @args );
 
 lists_match( \@results, \@expected, '--ignore-case flag' );
+
+@args    = ( qw( --nocolor Café --ignore-case ), @targets );
+@results = run_ack( @args );
+lists_match( \@results, [], '--ignore-case without --norm' );

@@ -138,7 +138,19 @@ sub needs_line_scan {
     }
     return 0 unless $rc && ( $rc == $size );
 
-    return $buffer =~ /$opt->{regex}/mo;
+    if ($opt->{utf8}) {
+        utf8::decode($buffer);
+        if ($opt->{norm}) {
+            $buffer = Unicode::Normalize::NFC($buffer);
+        }
+        if ($opt->{i}) {
+            return CORE::fc($buffer) =~ /$opt->{regex}/mou;
+        } else {
+            return $buffer =~ /$opt->{regex}/mou;
+        }
+    } else {
+        return $buffer =~ /$opt->{regex}/mo;
+    }
 }
 
 

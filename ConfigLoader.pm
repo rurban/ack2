@@ -355,11 +355,14 @@ EOT
         'm|max-count=i'     => \$opt->{m},
         'match=s'           => \$opt->{regex},
         'n|no-recurse'      => \$opt->{n},
+        'norm'     	    => sub {
+            require Unicode::Normalize;
+            $opt->{norm} = 1;
+        },
         o                   => sub { $opt->{output} = '$&' },
         'output=s'          => \$opt->{output},
         'pager:s'           => sub {
             my ( undef, $value ) = @_;
-
             $opt->{pager} = $value || $ENV{PAGER};
         },
         'noignore-directory|noignore-dir=s' => _generate_ignore_dir('--noignore-dir', $opt),

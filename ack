@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-our $VERSION = '2.23_02'; # Check https://beyondgrep.com/ for updates
+our $VERSION = '2.23_03'; # Check https://beyondgrep.com/ for updates
 
 use 5.008008;
 use Getopt::Long 2.38 ();
@@ -324,7 +324,41 @@ sub build_regex {
 
     my $regex_is_lc = $str eq lc $str;
     if ( $opt->{i} || ($opt->{smart_case} && $regex_is_lc) ) {
-        $str = "(?i)$str";
+        if ($] > 5.016) {
+            require Encode::Guess;
+            my $enc = Encode::Guess::guess_encoding($str, qw/utf-8/);
+            my $is_utf8 = $enc =~ /^utf/;
+            if ($] >= 5.022) {
+                if ($is_utf8) {
+                    $opt->{utf8} = 1;
+                    utf8::downgrade($str);
+                    if ($opt->{norm}) {
+                        $str = Unicode::Normalize::NFC($str);
+                    } else {
+                        $str = CORE::fc($str);
+                    }
+                    $str = "(?iu)$str";
+                } else {
+                    $str = "(?il)$str";
+                }
+            } elsif ($is_utf8) {
+                require feature;
+                feature->import('fc');
+                $opt->{utf8} = 1;
+                utf8::downgrade($str);
+                if ($opt->{norm}) {
+                    require Unicode::Normalize;
+                    $str = CORE::fc(Unicode::Normalize::NFC($str));
+                } else {
+                    $str = CORE::fc($str);
+                }
+                $str = "(?iu)$str";
+            } else {
+                $str = "(?i)$str";
+            }
+        } else {
+            $str = "(?i)$str";
+        }
     }
 
     my $re = eval { qr/$str/m };
@@ -1382,6 +1416,10 @@ Print this manual page.
 =item B<-n>, B<--no-recurse>
 
 No descending into subdirectories.
+
+=item B<--norm>
+
+Normalize the utf-8 PATTERN and lines with C<-i>.
 
 =item B<-o>
 
